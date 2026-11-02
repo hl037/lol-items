@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, onUnmounted, ref, toRef, watch, watchEffect } from 'vue'
 import ItemTable from './components/ItemTable.vue'
 import ItemDetail from './components/ItemDetail.vue'
 import ChampionTable from './components/ChampionTable.vue'
@@ -8,23 +8,25 @@ import HelpContent from './components/HelpContent.vue'
 import SetBuilder from './components/SetBuilder.vue'
 import { useItems, useChampions } from './lib/data.js'
 import { useSets } from './lib/sets.js'
+import { ui } from './lib/state.js'
 
 const { data, items, byId, error, loadItems } = useItems()
 const { champData, champions, champError, loadChampions } = useChampions()
-const { sets, currentUid } = useSets()
+const { sets } = useSets()
 
 const TABS = [['items', 'Items'], ['champions', 'Champions']]
-const TAB_KEY = 'lol-items:tab'
-const tab = ref((() => { try { return localStorage.getItem(TAB_KEY) } catch { return null } })() === 'champions' ? 'champions' : 'items')
+// état persistant (src/lib/state.js)
+const tab = toRef(ui, 'tab')
+const currentUid = toRef(ui, 'currentUid')
+const activeBlock = toRef(ui, 'activeBlock')
+const helpOpen = toRef(ui, 'helpOpen')
 
-const activeBlock = ref(null)
 const hovered = ref(null)
 const hoveredChamp = ref(null)
 const champLevel = ref(1)
 // aide : survol d'un en-tête de colonne = son entrée ; bouton « ? » de la barre d'outils = glossaire complet de l'onglet
 const helpHover = ref(null)
-const pinned = ref({ open: false })
-const toggleHelp = () => { pinned.value = { open: !pinned.value.open } }
+const toggleHelp = () => { helpOpen.value = !helpOpen.value }
 
 // L'aperçu reste affiché quand la souris passe de la ligne (ou de l'en-tête) à l'aperçu, pour pouvoir le faire défiler :
 // la fermeture est retardée et annulée si la souris entre dans l'aperçu ou sur un autre élément.
@@ -39,10 +41,7 @@ function onHover(kind, v) {
 const keepPreview = () => clearTimeout(clearTimer)
 const leavePreview = () => { clearTimeout(clearTimer); clearTimer = setTimeout(clearAll, 150) }
 
-watch(tab, (t) => {
-  hovered.value = hoveredChamp.value = helpHover.value = null
-  try { localStorage.setItem(TAB_KEY, t) } catch { /* ignore */ }
-})
+watch(tab, () => { hovered.value = hoveredChamp.value = helpHover.value = null })
 
 // survol d'une icône : toutes les icônes identiques (et la colonne de la stat) sont mises en évidence
 const hl = ref(null)
@@ -68,8 +67,9 @@ onMounted(() => { loadItems(); loadChampions() })
 
 const currentSet = computed(() => sets.value.find((x) => x.uid === currentUid.value))
 
-// le bloc actif doit toujours appartenir au set courant
+// le set sélectionné doit exister (il a pu être supprimé) et le bloc actif appartenir au set courant
 watchEffect(() => {
+  if (!sets.value.some((x) => x.uid === currentUid.value)) currentUid.value = sets.value[0]?.uid ?? null
   const s = currentSet.value
   if (s && !s.blocks.some((b) => b.uid === activeBlock.value)) activeBlock.value = s.blocks[0]?.uid ?? null
 })
@@ -124,12 +124,12 @@ const meta = computed(() => {
         <HelpContent v-if="helpHover" :only="helpHover" />
         <template v-else-if="tab === 'items'">
           <ItemDetail v-if="hovered" :item="hovered" preview />
-          <HelpContent v-else-if="pinned.open" scope="items" @close="pinned.open = false" />
+          <HelpContent v-else-if="helpOpen" scope="items" @close="helpOpen = false" />
           <p v-else class="muted">Survole un item du tableau pour voir son détail ici, ou clique sur « ? » pour l'aide sur les colonnes (ou survole un en-tête).</p>
         </template>
         <template v-else>
           <ChampionDetail v-if="hoveredChamp" :champion="hoveredChamp" :level="champLevel" preview />
-          <HelpContent v-else-if="pinned.open" scope="champions" @close="pinned.open = false" />
+          <HelpContent v-else-if="helpOpen" scope="champions" @close="helpOpen = false" />
           <p v-else class="muted">Survole un champion du tableau pour voir son détail ici, ou clique sur « ? » pour l'aide sur les colonnes (ou survole un en-tête).</p>
         </template>
       </div>

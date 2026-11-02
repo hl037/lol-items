@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, toRef, watch } from 'vue'
 import { CHAMP_COLS, fmt, CLASSES_FR, POSITIONS, POSITION_LABEL, mobalyticsUrl, RATIO_STATS, scalingRatio } from '../../shared/champions.js'
 import { localSrc } from '../lib/data.js'
+import { ui, setRef } from '../lib/state.js'
 import { hlOfStat } from '../lib/icons.js'
 import { STAT_BY_KEY } from '../../shared/stats.js'
 import StatIcon from './StatIcon.vue'
@@ -10,19 +11,15 @@ import ChampionDetail from './ChampionDetail.vue'
 const props = defineProps({ champions: { type: Array, required: true }, currentChampion: String })
 const emit = defineEmits(['pick', 'help', 'helphover', 'hover', 'level'])
 
-const KEY = 'lol-items:champs:v1'
-const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) ?? {} } catch { return {} } })()
-
-const query = ref('')
-const classes = ref(new Set(saved.classes ?? saved.roles ?? [])) // « roles » : ancien nom de la clé
-const positions = ref(new Set(saved.positions ?? []))
-const level = ref(saved.level ?? 1)
-const sort = ref({ key: 'name', dir: 'asc' })
-const open = ref(new Set())
-watch([classes, positions, level], () => {
-  emit('level', level.value)
-  try { localStorage.setItem(KEY, JSON.stringify({ classes: [...classes.value], positions: [...positions.value], level: level.value })) } catch { /* ignore */ }
-}, { deep: true, immediate: true })
+// état persistant (src/lib/state.js) : recherche, classes, postes, niveau, tri, lignes dépliées
+const st = ui.champions
+const query = toRef(st, 'query')
+const classes = setRef(st, 'classes')
+const positions = setRef(st, 'positions')
+const level = toRef(st, 'level')
+const sort = toRef(st, 'sort')
+const open = setRef(st, 'open')
+watch(level, (l) => emit('level', Math.min(18, Math.max(1, Math.round(l) || 1))), { immediate: true })
 
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 const lvl = computed(() => Math.min(18, Math.max(1, Math.round(level.value) || 1)))

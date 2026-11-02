@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { STATS, STAT_BY_KEY, STAT_GROUPS, groupKeys } from '../../shared/stats.js'
 import { formatStat, gold } from '../lib/format.js'
 import { iconSrc } from '../lib/data.js'
+import { ui, setRef } from '../lib/state.js'
 import { hlOfStat } from '../lib/icons.js'
 import StatIcon from './StatIcon.vue'
 import ItemDetail from './ItemDetail.vue'
@@ -15,23 +16,15 @@ const TIERS = [
   ['basic', 'Basiques'], ['epic', 'Intermédiaires'], ['legendary', 'Légendaires'], ['other', 'Autres'],
 ]
 const HEAD = [['nameFr', 'Nom (FR)', ''], ['nameEn', 'Name (EN)', ''], ['total', 'Prix', 'num'], ['price', 'Recette', 'num'], ['eff', 'Eff. or', 'num']]
-const DEFAULT_COLS = ['ad', 'ap', 'hp', 'armor', 'mr', 'as', 'crit', 'critDamage', 'ah', 'ms']
-const KEY = 'lol-items:table:v1'
-
-const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) ?? {} } catch { return {} } }
-const saved = load()
-
-const query = ref('')
-const tiers = ref(new Set(saved.tiers ?? ['legendary', 'epic', 'boots', 'basic']))
-const cols = ref(saved.cols ?? DEFAULT_COLS)
-const showSpecial = ref(false)
+// état persistant (src/lib/state.js) : recherche, catégories, colonnes, tri, lignes dépliées…
+const st = ui.items
+const query = toRef(st, 'query')
+const tiers = setRef(st, 'tiers')
+const cols = toRef(st, 'cols')
+const showSpecial = toRef(st, 'showSpecial')
+const sort = toRef(st, 'sort')
+const open = setRef(st, 'open')
 const colPicker = ref(false)
-const sort = ref({ key: 'total', dir: 'desc' })
-const open = ref(new Set())
-
-watch([tiers, cols], () => {
-  try { localStorage.setItem(KEY, JSON.stringify({ tiers: [...tiers.value], cols: cols.value })) } catch { /* ignore */ }
-}, { deep: true })
 
 // stats réellement présentes dans les données, pour ne proposer que celles-là
 const presentStats = computed(() => {

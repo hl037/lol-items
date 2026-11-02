@@ -72,7 +72,6 @@ export function useSets() {
   let initial
   try { initial = JSON.parse(localStorage.getItem(KEY)) } catch { /* stockage indisponible */ }
   const sets = ref(Array.isArray(initial) && initial.length ? initial : [newSet('Mon premier set')])
-  const currentUid = ref(sets.value[0].uid)
   watch(sets, (v) => { try { localStorage.setItem(KEY, JSON.stringify(v)) } catch { /* ignore */ } }, { deep: true })
-  return { sets, currentUid }
+  return { sets }
 }

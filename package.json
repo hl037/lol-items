@@ -11,7 +11,7 @@
     "build": "vite build",
     "gh-pages": "node scripts/gh-pages.mjs",
     "preview": "vite preview",
-    "test": "node --test scripts/process.test.mjs scripts/champions.test.mjs scripts/groups.test.mjs scripts/spells.test.mjs"
+    "test": "node --test scripts/process.test.mjs scripts/champions.test.mjs scripts/groups.test.mjs scripts/spells.test.mjs scripts/state.test.mjs"
   },
   "dependencies": {
     "vue": "^3.5.44"

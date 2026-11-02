@@ -60,6 +60,13 @@ Le drapeau ⚑ d'une ligne associe le champion au set en cours (`associatedChamp
 - Items : regroupements de colonnes définis dans `STAT_GROUPS` (`shared/stats.js`), toujours entre stats de **même icône** (vérifié par `scripts/groups.test.mjs`). Critique : sous-colonnes C (chance) / D (dégâts), « - » si l'autre est présente. Fixe + pourcentage (vitesse de déplacement, pénétration magique…) : une seule colonne `+20+8%`. Un groupe n'est appliqué que si au moins deux de ses stats sont cochées dans « Colonnes de stats ».
 - Les icônes d'items sont servies localement (`data/icons/`) ; si un téléchargement échoue, l'URL CommunityDragon est conservée.
 
+## État sauvegardé
+
+L'état de l'interface est conservé dans le `localStorage` (clé `lol-items:ui:v2`, `src/lib/state.js`) : onglet actif, recherche, catégories / classes / postes cochés,
+colonnes de stats affichées, niveau des champions, tri de chaque tableau, lignes dépliées, aide épinglée, set et bloc sélectionnés.
+Les sets ont leur propre clé (`lol-items:sets:v1`). Le chargement valide chaque champ (type) et reprend les anciennes clés de la première version ;
+si le stockage est bloqué (navigation privée), l'app fonctionne sans sauvegarde. Pour repartir de zéro : supprimer ces clés dans les outils de développement du navigateur.
+
 ## Sets
 
 Le JSON copié suit le format des fichiers `Config/**/Recommended/*.json` du client. À placer dans
