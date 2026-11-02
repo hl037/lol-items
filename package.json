@@ -1,0 +1,23 @@
+{
+  "name": "lol-items",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "fetch-items": "node scripts/fetch-items.mjs",
+    "fetch-champions": "node scripts/fetch-champions.mjs",
+    "fetch-data": "node scripts/fetch-items.mjs && node scripts/fetch-champions.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "gh-pages": "node scripts/gh-pages.mjs",
+    "preview": "vite preview",
+    "test": "node --test scripts/process.test.mjs scripts/champions.test.mjs scripts/groups.test.mjs scripts/spells.test.mjs"
+  },
+  "dependencies": {
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.10",
+    "vite": "^8.3.5"
+  }
+}
